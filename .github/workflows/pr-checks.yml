@@ -1,0 +1,46 @@
+name: PR Checks (Feature → Develop)
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  terraform-validate:
+    name: Terraform Validation & Static Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5   # you can pin or leave default latest
+
+      - name: Terraform Fmt
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init (tests folder)
+        working-directory: tests
+        run: terraform init
+
+      - name: Terraform Validate (tests folder)
+        working-directory: tests
+        run: terraform validate
+
+      - name: Terraform Plan (dry run)
+        working-directory: tests
+        run: terraform plan -input=false
+
+      - name: TFLint (Lint Checks)
+        uses: terraform-linters/setup-tflint@v3
+      - run: |
+          tflint --init
+          tflint
+
+      - name: Security Scan (tfsec)
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true   # ✅ doesn't fail PR, just reports warnings
