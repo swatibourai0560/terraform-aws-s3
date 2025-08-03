@@ -6,8 +6,8 @@ on:
       - develop
 
 jobs:
-  terraform-validate:
-    name: Terraform Validation & Static Checks
+  terraform-light-checks:
+    name: Terraform Validate & Static Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.7.5   # you can pin or leave default latest
+          terraform_version: 1.7.5
 
       - name: Terraform Fmt
         run: terraform fmt -check -recursive
@@ -43,4 +43,4 @@ jobs:
       - name: Security Scan (tfsec)
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          soft_fail: true   # ✅ doesn't fail PR, just reports warnings
+          soft_fail: true   # ✅ warn but don’t block PR
