@@ -6,9 +6,14 @@ on:
       - main
 
 jobs:
-  terraform-release-check:
-    name: Validate Before Main Merge
+  terraform-full-checks:
+    name: Terraform Full Test (Apply/Destroy)
     runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
 
     steps:
       - name: Checkout Code
@@ -28,17 +33,15 @@ jobs:
         working-directory: tests
         run: terraform validate
 
-      - name: Terraform Plan (dry run)
+      - name: Terraform Plan
         working-directory: tests
         run: terraform plan -input=false
 
-      # ✅ Optional: Apply & Destroy in tests for real validation
-      - name: Terraform Apply (Tests)
-        if: github.event_name == 'pull_request'
+      - name: Terraform Apply (Integration Test)
         working-directory: tests
         run: terraform apply -auto-approve
 
       - name: Terraform Destroy (Cleanup)
-        if: always()
+        if: always()           # ✅ ensures cleanup runs even if apply fails
         working-directory: tests
         run: terraform destroy -auto-approve
